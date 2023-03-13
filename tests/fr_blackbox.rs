@@ -2,6 +2,9 @@ mod common;
 
 use common::{new_rng, MyRandom, NUM_BLACK_BOX_CHECKS};
 use jubjub::*;
+use group::Group;
+use subtle::ConstantTimeEq;
+
 
 #[test]
 fn test_to_and_from_bytes() {
@@ -119,3 +122,17 @@ fn test_multiply_additive_identity() {
         assert_eq!(Fr::zero(), a * Fr::zero());
     }
 }
+
+#[test]
+fn test_multiplicative_associativity2() {
+    let g = ExtendedPoint::generator();
+    let mut rng = new_rng();
+    for _ in 0..NUM_BLACK_BOX_CHECKS {
+        let a = Fr::new_random(&mut rng);
+        let b = Fr::new_random(&mut rng);
+        let left = (g * a) * b;
+        let right = g * (a * b);
+        assert_eq!(bool::from(left.ct_eq(&right)), true );
+    }
+}
+
